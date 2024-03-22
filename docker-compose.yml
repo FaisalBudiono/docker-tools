@@ -17,6 +17,15 @@ services:
     networks:
       - docker-tools-network
 
+  redis:
+    image: redis:7.2.4-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - docker-tools-network
+
+
 networks:
   docker-tools-network:
     name: docker-tools-network

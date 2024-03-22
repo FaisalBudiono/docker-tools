@@ -1,0 +1,23 @@
+version: "3.8"
+name: "docker-tools"
+
+services:
+  mysql:
+    image: mysql:8.0.26
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_USER_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DEFAULT_DB_NAME}
+    volumes:
+      - ./mysql/dbdata:/var/lib/mysql
+    networks:
+      - docker-tools-network
+
+networks:
+  docker-tools-network:
+    name: docker-tools-network
+    driver: bridge

@@ -37,6 +37,20 @@ services:
     networks:
       - docker-tools-network
 
+  rmq:
+    image: rabbitmq:4-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=password
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq
+    hostname: rmq
+    networks:
+      - docker-tools-network
 
 networks:
   docker-tools-network:

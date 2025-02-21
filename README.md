@@ -1,3 +1,8 @@
+# Otel Trace
+
+Create `oteltrace.log` in `./opentelemetry/log` with
+touch `opentelemetry/log`
+
 # Postgres
 
 Don't forget to install the SSL certification.

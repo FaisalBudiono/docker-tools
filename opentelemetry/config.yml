@@ -1,0 +1,34 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+  otlpjsonfile:
+    include:
+      - "/var/log/myservice/*.log"
+
+processors:
+  batch:
+
+exporters:
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+  debug:
+    verbosity: detailed
+    sampling_initial: 5
+  file/no_rotation:
+    path: /var/log/myservice/oteltrace.log
+    append: true
+
+service:
+  pipelines:
+    traces/log:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [file/no_rotation]
+    traces/jaeger:
+      receivers: [otlpjsonfile]
+      processors: [batch]
+      exporters: [otlp/jaeger, debug]

@@ -52,6 +52,35 @@ services:
     networks:
       - docker-tools-network
 
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/jaeger:2.3.0
+    environment:
+      JAEGER_PROPAGATION: w3c
+    command: ["--config", "/etc/jaeger/config.yml"]
+    volumes:
+      - "./jaeger/jaeger-ui.json:/etc/jaeger/jaeger-ui.json"
+      - "./jaeger/config-spm.yml:/etc/jaeger/config.yml"
+    ports:
+      - 16686:16686
+      - 13133:13133
+    networks:
+      - docker-tools-network
+
+  otel-collector:
+    user: 1000:1000
+    container_name: otel-collector
+    image: otel/opentelemetry-collector-contrib:0.119.0
+    depends_on:
+      - jaeger
+    volumes:
+      - ./opentelemetry/config.yml:/etc/otelcol-contrib/config.yaml
+      - ./opentelemetry/log/:/var/log/myservice/
+    ports:
+      - 4318:4318 # OTLP http receiver
+    networks:
+      - docker-tools-network
+
 networks:
   docker-tools-network:
     name: docker-tools-network

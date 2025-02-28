@@ -58,6 +58,8 @@ services:
     environment:
       JAEGER_PROPAGATION: w3c
     command: ["--config", "/etc/jaeger/config.yml"]
+    healthcheck:
+      test: [CMD, wget, -qS, -O, "-", "0.0.0.0:13133/status"]
     volumes:
       - "./jaeger/jaeger-ui.json:/etc/jaeger/jaeger-ui.json"
       - "./jaeger/config-spm.yml:/etc/jaeger/config.yml"

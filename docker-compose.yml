@@ -52,6 +52,20 @@ services:
     networks:
       - docker-tools-network
 
+  jaeger-prepare-dir:
+    # Run this step as root so that we can change the directory owner.
+    user: root
+    image: jaegertracing/jaeger:2.3.0
+    entrypoint: []
+    command:
+      [
+        "/bin/sh",
+        -c,
+        "mkdir -p /tmp/jaeger && touch /tmp/jaeger/.initialized && chown -R 10001:10001 /tmp/jaeger",
+      ]
+    volumes:
+      - "./jaeger/data/:/tmp/jaeger/"
+
   jaeger:
     container_name: jaeger
     image: jaegertracing/jaeger:2.3.0
@@ -61,11 +75,15 @@ services:
     healthcheck:
       test: [CMD, wget, -qS, -O, "-", "0.0.0.0:13133/status"]
     volumes:
+      - "./jaeger/data/:/tmp/jaeger/"
       - "./jaeger/jaeger-ui.json:/etc/jaeger/jaeger-ui.json"
       - "./jaeger/config-spm.yml:/etc/jaeger/config.yml"
     ports:
       - 16686:16686
-      - 13133:13133
+      - 4318:4318
+    depends_on:
+      jaeger-prepare-dir:
+        condition: service_completed_successfully
     networks:
       - docker-tools-network
 

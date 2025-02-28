@@ -28,8 +28,8 @@ extensions:
       badger_storage:
         badger:
           directories:
-            keys: "/tmp/jaeger/"
-            values: "/tmp/jaeger/"
+            keys: "/tmp/jaeger/keys/"
+            values: "/tmp/jaeger/values/"
           ephemeral: false
 
 connectors:

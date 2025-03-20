@@ -74,6 +74,7 @@ services:
     command: ["--config", "/etc/jaeger/config.yml"]
     healthcheck:
       test: [CMD, wget, -qS, -O, "-", "0.0.0.0:13133/status"]
+      start_period: 1s
     volumes:
       - "./jaeger/data/:/tmp/jaeger/"
       - "./jaeger/jaeger-ui.json:/etc/jaeger/jaeger-ui.json"

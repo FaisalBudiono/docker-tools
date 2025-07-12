@@ -29,6 +29,16 @@ services:
     networks:
       - docker-tools-network
 
+  libsql:
+    image: ghcr.io/tursodatabase/libsql-server:latest
+    ports:
+      - "8085:8080"
+      - "5001:5001"
+    environment:
+      - SQLD_NODE=primary
+    volumes:
+      - ./libsql/dbdata:/var/lib/sqld
+
   redis:
     image: redis:7.2.4-alpine
     container_name: redis

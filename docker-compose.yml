@@ -63,39 +63,120 @@ services:
     networks:
       - docker-tools-network
 
-  jaeger-prepare-dir:
-    # Run this step as root so that we can change the directory owner.
-    user: root
-    image: jaegertracing/jaeger:2.3.0
-    entrypoint: []
-    command:
-      [
-        "/bin/sh",
-        -c,
-        "mkdir -p /tmp/jaeger && touch /tmp/jaeger/.initialized && chown -R 10001:10001 /tmp/jaeger",
-      ]
-    volumes:
-      - "./jaeger/data/:/tmp/jaeger/"
+  # jaeger-prepare-dir:
+  #   # Run this step as root so that we can change the directory owner.
+  #   user: root
+  #   image: jaegertracing/jaeger:2.3.0
+  #   entrypoint: []
+  #   command:
+  #     [
+  #       "/bin/sh",
+  #       -c,
+  #       "mkdir -p /tmp/jaeger && touch /tmp/jaeger/.initialized && chown -R 10001:10001 /tmp/jaeger",
+  #     ]
+  #   volumes:
+  #     - "./jaeger/data/:/tmp/jaeger/"
 
-  jaeger:
-    container_name: jaeger
-    image: jaegertracing/jaeger:2.3.0
-    environment:
-      JAEGER_PROPAGATION: w3c
-    command: ["--config", "/etc/jaeger/config.yml"]
-    healthcheck:
-      test: [CMD, wget, -qS, -O, "-", "0.0.0.0:13133/status"]
-      start_period: 1s
+  # jaeger:
+  #   container_name: jaeger
+  #   image: jaegertracing/jaeger:2.3.0
+  #   environment:
+  #     JAEGER_PROPAGATION: w3c
+  #   command: ["--config", "/etc/jaeger/config.yml"]
+  #   healthcheck:
+  #     test: [CMD, wget, -qS, -O, "-", "0.0.0.0:13133/status"]
+  #     start_period: 1s
+  #   volumes:
+  #     - "./jaeger/data/:/tmp/jaeger/"
+  #     - "./jaeger/jaeger-ui.json:/etc/jaeger/jaeger-ui.json"
+  #     - "./jaeger/config-spm.yml:/etc/jaeger/config.yml"
+  #   ports:
+  #     - 16686:16686
+  #     - 4318:4318
+  #   depends_on:
+  #     jaeger-prepare-dir:
+  #       condition: service_completed_successfully
+  #   networks:
+  #     - docker-tools-network
+  #
+  # # opentelemetry:
+  # #   container_name: aspire-dashboard
+  # #   image: mcr.microsoft.com/dotnet/aspire-dashboard:9.3
+  # #   environment:
+  # #     JAEGER_PROPAGATION: w3c
+  # #   # healthcheck:
+  # #   #   test: [CMD, wget, -qS, -O, "-", "0.0.0.0:13133/status"]
+  # #   #   start_period: 1s
+  # #   # volumes:
+  # #   #   - "./jaeger/data/:/tmp/jaeger/"
+  # #   #   - "./jaeger/jaeger-ui.json:/etc/jaeger/jaeger-ui.json"
+  # #   #   - "./jaeger/config-spm.yml:/etc/jaeger/config.yml"
+  # #   ports:
+  # #     - 18888:18888
+  # #   networks:
+  # #     - docker-tools-network
+
+  # aspire:
+  #   container_name: aspire-dashboard
+  #   image: mcr.microsoft.com/dotnet/aspire-dashboard:9.3
+  #   environment:
+  #     DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: true
+  #     DOTNET_DASHBOARD_OTLP_HTTP_ENDPOINT_URL: http://0.0.0.0:4318
+  #     DASHBOARD__TELEMETRYLIMITS__MAXLOGCOUNT: 100000
+  #     OTELCOL_LOG_LEVEL: debug
+  #     DASHBOARD__TELEMETRYLIMITS__MAXATTRIBUTECOUNT: 1024
+  #     ASPNETCORE_Kestrel__Limits__MaxRequestBodySize: 100000000
+  #   # healthcheck:
+  #   #   test: [CMD, wget, -qS, -O, "-", "0.0.0.0:13133/status"]
+  #   #   start_period: 1s
+  #   # volumes:
+  #   #   - "./jaeger/data/:/tmp/jaeger/"
+  #   #   - "./jaeger/jaeger-ui.json:/etc/jaeger/jaeger-ui.json"
+  #   #   - "./jaeger/config-spm.yml:/etc/jaeger/config.yml"
+  #   ports:
+  #     - 18888:18888
+  #     - 4318:4318
+  #   networks:
+  #     - docker-tools-network
+
+  uptrace:
+    image: "uptrace/uptrace:2.0.0"
+    container_name: uptrace
+    restart: on-failure
     volumes:
-      - "./jaeger/data/:/tmp/jaeger/"
-      - "./jaeger/jaeger-ui.json:/etc/jaeger/jaeger-ui.json"
-      - "./jaeger/config-spm.yml:/etc/jaeger/config.yml"
+      - ./uptrace/uptrace.yml:/etc/uptrace/config.yml
+      # - ./certs/server.crt:/etc/uptrace/server.crt
+      # - ./certs/server.key:/etc/uptrace/server.key
+    #environment:
+    #  - DEBUG=2
     ports:
-      - 16686:16686
-      - 4318:4318
+      - "4318:4318"
+      - "14318:80"
     depends_on:
-      jaeger-prepare-dir:
-        condition: service_completed_successfully
+      - clickhouse
+      - postgres
+      - redis
+    networks:
+      - docker-tools-network
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.3.5
+    container_name: clickhouse
+    restart: on-failure
+    environment:
+      CLICKHOUSE_USER: uptrace
+      CLICKHOUSE_PASSWORD: uptrace
+      CLICKHOUSE_DB: uptrace
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "localhost:8123/ping"]
+      interval: 1s
+      timeout: 1s
+      retries: 30
+    volumes:
+      - ./clickhouse/dbdata:/var/lib/clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
     networks:
       - docker-tools-network
 

@@ -1,3 +1,4 @@
 .comhelconfig.json
 .env
 mysql/dbdata
+clickhouse/dbdata

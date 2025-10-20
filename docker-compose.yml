@@ -49,7 +49,10 @@ services:
       - docker-tools-network
 
   rmq:
-    image: rabbitmq:4-management-alpine
+    build:
+      context: .
+      dockerfile: ./rabbitmq/Dockerfile
+    image: local-rabbitmq:4-management-alpine
     container_name: rabbitmq
     ports:
       - "15672:15672"

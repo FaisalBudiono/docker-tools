@@ -16,29 +16,6 @@ services:
     networks:
       - docker-tools-network
 
-  minio:
-    image: "quay.io/minio/minio:RELEASE.2025-02-28T09-55-16Z"
-    command: 'server /data --console-address ":9001"'
-    environment:
-      # - MINIO_BROWSER_REDIRECT_URL=${MINIO_BROWSER_REDIRECT_URL}
-      - MINIO_ROOT_USER=uculonly
-      - MINIO_ROOT_PASSWORD=uculonly
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    healthcheck:
-      test:
-        - CMD
-        - mc
-        - ready
-        - local
-      interval: 5s
-      timeout: 20s
-      retries: 10
-    container_name: minio
-    networks:
-      - docker-tools-network
-
   postgres:
     image: postgres:16-alpine3.20
     container_name: postgres
